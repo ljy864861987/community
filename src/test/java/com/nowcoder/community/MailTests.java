@@ -22,12 +22,12 @@ public class MailTests {
 	private TemplateEngine templateEngine;
 
 	@Test
-	public void testTextMail(){
-		mailClient.sendMail("864861987@qq.com", "TEXTS", "this is a test.");
+	public void testTextMail() {
+		mailClient.sendMail("1119157406@qq.com", "TEXTS", "我是你爹");
 	}
 
 	@Test
-	public void testHtmlMail(){
+	public void testHtmlMail() {
 		Context context = new Context();
 		context.setVariable("username", "LJY");
 
