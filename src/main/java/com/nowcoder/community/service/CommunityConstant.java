@@ -17,4 +17,14 @@ public interface CommunityConstant {
 	 */
 	int ACTIVATION_FAILURE = 2;
 
+	/**
+	 * 默認的憑證超時時間
+	 */
+	int DEFAULT_EXPIRED_SECONDS = 3600 * 12;
+
+	/**
+	 * 記住狀態下的登錄憑證超時時間
+	 */
+	int REMEMBER_EXPIRED_SECONDS = 3600 * 24 * 100;
+
 }

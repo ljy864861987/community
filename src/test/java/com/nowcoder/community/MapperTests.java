@@ -1,8 +1,10 @@
 package com.nowcoder.community;
 
 import com.nowcoder.community.dao.DiscussPostMapper;
+import com.nowcoder.community.dao.LoginTicketMapper;
 import com.nowcoder.community.dao.UserMapper;
 import com.nowcoder.community.entity.DiscussPosts;
+import com.nowcoder.community.entity.LoginTicket;
 import com.nowcoder.community.entity.User;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,8 +28,11 @@ public class MapperTests {
 	@Autowired
 	private DiscussPostMapper discussPostMapper;
 
+	@Autowired
+	private LoginTicketMapper loginTicketMapper;
+
 	@Test
-	public void testSelectUser(){
+	public void testSelectUser() {
 		System.out.println(userMapper.selectById(101));
 
 		System.out.println(userMapper.selectByName("liubei"));
@@ -36,7 +41,7 @@ public class MapperTests {
 	}
 
 	@Test
-	public void testInsertUser(){
+	public void testInsertUser() {
 		User user = new User();
 		user.setUsername("Test");
 		user.setPassword("123456");
@@ -51,7 +56,7 @@ public class MapperTests {
 	}
 
 	@Test
-	public void updateUser(){
+	public void updateUser() {
 		int rows = userMapper.updateStatus(150, 1);
 		System.out.println(rows);
 
@@ -63,14 +68,31 @@ public class MapperTests {
 	}
 
 	@Test
-	public void setsSelectPosts(){
+	public void setsSelectPosts() {
 		List<DiscussPosts> list = discussPostMapper.selectDiscussPosts(149, 0, 10);
-		for(DiscussPosts post : list){
+		for (DiscussPosts post : list) {
 			System.out.println(post);
 		}
 		int Rows = discussPostMapper.selectDiscussPostsRows(149);
 		System.out.println(Rows);
 	}
 
+	@Test
+	public void insertLoginTicket() {
+		LoginTicket loginTicket = new LoginTicket();
+		loginTicket.setUserId(101);
+		loginTicket.setTicket("abc");
+		loginTicket.setStatus(0);
+		loginTicket.setExpired(new Date(System.currentTimeMillis() + 1000 * 60 * 10));
+
+		loginTicketMapper.insertLoginTicket(loginTicket);
+	}
+
+	@Test
+	public void testSelectLoginTicket() {
+		LoginTicket loginTicket = loginTicketMapper.selectByLoginTicket("abc");
+		System.out.println(loginTicket);
+		loginTicketMapper.updateStatus("abc", 1);
+	}
 
 }

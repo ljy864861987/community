@@ -1,8 +1,12 @@
 package com.nowcoder.community.service;
 
+import com.nowcoder.community.dao.LoginTicketMapper;
 import com.nowcoder.community.dao.UserMapper;
+import com.nowcoder.community.entity.LoginTicket;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.util.CommunityUtil;
+import com.nowcoder.community.util.CookieUtil;
+import com.nowcoder.community.util.HostHolder;
 import com.nowcoder.community.util.MailClient;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.javassist.Loader;
@@ -12,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import javax.servlet.http.HttpServletRequest;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -36,6 +41,12 @@ public class UserService implements CommunityConstant {
 
 	@Value("${server.servlet.context-path}")
 	private String contextPath;
+
+	@Autowired
+	private LoginTicketMapper loginTicketMapper;
+
+	@Autowired
+	private HostHolder hostHolder;
 
 	public User findUserById(int id) {
 		return userMapper.selectById(id);
@@ -104,6 +115,82 @@ public class UserService implements CommunityConstant {
 		} else {
 			return ACTIVATION_FAILURE;
 		}
+	}
+
+	public Map<String, Object> login(String username, String password, long expiredSeconds) {
+		Map<String, Object> map = new HashMap<>();
+		//空值处理
+		if (StringUtils.isBlank(username)) {
+			map.put("usernameMsg", "账号不能为空！");
+			return map;
+		}
+		if (StringUtils.isBlank(password)) {
+			map.put("passwordMsg", "密碼不能为空！");
+			return map;
+		}
+
+		//驗證賬號
+		User user = userMapper.selectByName(username);
+		if (user == null) {
+			map.put("usernameMsg", "該賬號不存在！");
+			return map;
+		}
+		//驗證狀態
+		if (user.getStatus() == 0) {
+			map.put("usernameMsg", "該賬號未激活！");
+			return map;
+		}
+		//驗證密碼
+		password = CommunityUtil.md5(password + user.getSalt());
+		if (!user.getPassword().equals(password)) {
+			map.put("passwordMsg", "密碼錯誤！");
+			return map;
+		}
+		//生成登錄憑證
+		LoginTicket loginTicket = new LoginTicket();
+		loginTicket.setUserId(user.getId());
+		loginTicket.setTicket(CommunityUtil.generateUUID());
+		loginTicket.setStatus(0);
+		loginTicket.setExpired(new Date(System.currentTimeMillis() + expiredSeconds * 1000));
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("YYYY-MM-dd HH:mm:ss");
+		System.out.println(simpleDateFormat.format(new Date(System.currentTimeMillis() + expiredSeconds * 1000)));
+		loginTicketMapper.insertLoginTicket(loginTicket);
+
+		map.put("ticket", loginTicket.getTicket());
+		return map;
+	}
+
+	public void logout(String ticket) {
+		loginTicketMapper.updateStatus(ticket, 1);
+	}
+
+	public LoginTicket findLoginTicket(String ticket) {
+		return loginTicketMapper.selectByLoginTicket(ticket);
+	}
+
+	public int updateHeader(int userId, String headerUrl) {
+		return userMapper.updateHeader(userId, headerUrl);
+	}
+
+	public Map<String, Object> changePassword(String oldPassword, String newPassword, String newPasswordAgain, HttpServletRequest request) {
+		Map<String, Object> map = new HashMap<>();
+		User user = hostHolder.getUser();
+		oldPassword = CommunityUtil.md5(oldPassword + user.getSalt());
+		if (!oldPassword.equals(user.getPassword())) {
+			map.put("oldPasswordMsg", "原密码错误！");
+			return map;
+		}
+		if (!newPassword.equals(newPasswordAgain)) {
+			map.put("newPasswordMsg", "两次输入的密码不一致！");
+			return map;
+		}
+
+		newPassword = CommunityUtil.md5(newPassword + user.getSalt());
+		userMapper.updatePassword(user.getId(), newPassword);
+		String ticket = CookieUtil.getValue(request, "ticket");
+		loginTicketMapper.updateStatus(ticket, 1);
+
+		return map;
 	}
 
 }
