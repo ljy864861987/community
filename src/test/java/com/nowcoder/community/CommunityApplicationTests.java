@@ -1,7 +1,7 @@
 package com.nowcoder.community;
 
 import com.nowcoder.community.dao.A_Dao;
-import com.nowcoder.community.service.a_Service;
+import com.nowcoder.community.service.A_Service;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.BeansException;
@@ -42,7 +42,7 @@ class CommunityApplicationTests implements ApplicationContextAware {
 
 	@Test
 	public void testBeanManagement(){
-		a_Service a_service = applicationContext.getBean(a_Service.class);
+		A_Service a_service = applicationContext.getBean(A_Service.class);
 		System.out.println(a_service);
 	}
 

@@ -1,6 +1,7 @@
 package com.nowcoder.community.dao;
 
 import com.nowcoder.community.entity.DiscussPosts;
+import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -14,5 +15,11 @@ public interface DiscussPostMapper {
 	//@Param注解用于给参数取别名
 	//如果只有一个参数，并且在<if>里使用，则必须加别名.
 	int selectDiscussPostsRows(@Param("userId") int userId);
+
+	int insertDiscussPost(DiscussPosts discussPosts);
+
+	DiscussPosts selectDiscussPostById(int id);
+
+	int updateCommentCount(int id, int commentCount);
 
 }

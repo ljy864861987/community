@@ -123,4 +123,5 @@ public class UserController {
 		model.addAttribute("target", "/login");
 		return "/site/operate-result";
 	}
+
 }

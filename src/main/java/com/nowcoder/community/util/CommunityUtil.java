@@ -1,8 +1,11 @@
 package com.nowcoder.community.util;
 
+import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.DigestUtils;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class CommunityUtil {
@@ -15,11 +18,32 @@ public class CommunityUtil {
 	//MD5加密
 	//每次加密结果一致
 	//原密码+盐 再加密
-	public static String md5(String key){
-		if(StringUtils.isBlank(key)){
+	public static String md5(String key) {
+		if (StringUtils.isBlank(key)) {
 			return null;
 		}
 		return DigestUtils.md5DigestAsHex(key.getBytes());
+	}
+
+	//转换成JSON字符串
+	public static String getJSONString(int code, String msg, Map<String, Object> map) {
+		JSONObject json = new JSONObject();
+		json.put("code", code);
+		json.put("msg", msg);
+		if (map != null) {
+			for (String s : map.keySet()) {
+				json.put(s, map.get(s));
+			}
+		}
+		return json.toJSONString();
+	}
+
+	public static String getJSONString(int code, String msg) {
+		return getJSONString(code, msg, null);
+	}
+
+	public static String getJSONString(int code) {
+		return getJSONString(code, null, null);
 	}
 
 }

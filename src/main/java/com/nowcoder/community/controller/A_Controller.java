@@ -1,6 +1,6 @@
 package com.nowcoder.community.controller;
 
-import com.nowcoder.community.service.a_Service;
+import com.nowcoder.community.service.A_Service;
 import com.nowcoder.community.util.CommunityUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -8,7 +8,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.*;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -19,7 +18,7 @@ import java.util.*;
 public class A_Controller {
 
 	@Autowired
-	private a_Service a_service;
+	private A_Service a_service;
 
 	@RequestMapping("/hello")
 	@ResponseBody
@@ -180,6 +179,14 @@ public class A_Controller {
 		System.out.println(session.getAttribute("id"));
 		System.out.println(session.getAttribute("name"));
 		return "get session";
+	}
+
+	@RequestMapping(path = "/ajax", method = RequestMethod.POST)
+	@ResponseBody
+	public String testAjax(String name, int age) {
+		System.out.println(name);
+		System.out.println(age);
+		return CommunityUtil.getJSONString(0, "操作成功！");
 	}
 
 }
