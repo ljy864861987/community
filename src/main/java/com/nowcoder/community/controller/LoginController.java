@@ -4,6 +4,8 @@ import com.google.code.kaptcha.Producer;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.service.CommunityConstant;
 import com.nowcoder.community.service.UserService;
+import com.nowcoder.community.util.CommunityUtil;
+import com.nowcoder.community.util.MailClient;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,16 +13,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.*;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 import javax.imageio.ImageIO;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -36,6 +36,12 @@ public class LoginController implements CommunityConstant {
 
 	@Autowired
 	private Producer kaptchaProducer;
+
+	@Autowired
+	private MailClient mailClient;
+
+	@Autowired
+	private TemplateEngine templateEngine;
 
 	@Value("${server.servlet.context-path}")
 	private String contextPath;
@@ -134,4 +140,51 @@ public class LoginController implements CommunityConstant {
 		userService.logout(ticket);
 		return "redirect:/index";
 	}
+
+	@RequestMapping(path = "/forget", method = RequestMethod.GET)
+	public String forget() {
+		return "/site/forget";
+	}
+
+	@RequestMapping(path = "/forget/sendVerifyCode", method = RequestMethod.GET)
+	@ResponseBody
+	public String sendVerifyCode(String email, HttpSession session) {
+		if (StringUtils.isBlank(email)) {
+			return CommunityUtil.getJSONString(1, "邮箱不能为空！");
+		}
+		// 生成验证码
+		String verifyCode = CommunityUtil.generateUUID().substring(0, 5);
+		Context context = new Context();
+		context.setVariable("email", email);
+		context.setVariable("verifyCode", verifyCode);
+
+		//发送邮件
+		String content = templateEngine.process("/mail/forget", context);
+		mailClient.sendMail(email, "验证码", content);
+
+		// 保存验证码
+		session.setAttribute("verifyCode", verifyCode);
+		return CommunityUtil.getJSONString(0);
+	}
+
+	@RequestMapping(path = "/forget", method = RequestMethod.POST)
+	public String changePassword(String email, String inputCode, String newPassword, HttpSession session, Model model) {
+		String verifyCode = session.getAttribute("verifyCode").toString();
+		if (StringUtils.isBlank(verifyCode) || StringUtils.isBlank(inputCode) || !verifyCode.equals(inputCode)) {
+			model.addAttribute("verifyCodeMsg", "验证码错误！");
+			return "/site/forget";
+		}
+		Map<String, Object> map = userService.changePassword(email, newPassword);
+		if (!map.isEmpty()) {
+			model.addAttribute("emailMsg", map.get("emailMsg"));
+			model.addAttribute("passwordMsg", map.get("passwordMsg"));
+			return "/site/forget";
+		}
+
+		model.addAttribute("msg", "修改密码成功！");
+		model.addAttribute("target", "/login");
+
+		return "/site/operate-result";
+	}
+
 }
