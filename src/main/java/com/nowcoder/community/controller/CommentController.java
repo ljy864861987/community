@@ -1,7 +1,7 @@
 package com.nowcoder.community.controller;
 
 import com.nowcoder.community.entity.Comment;
-import com.nowcoder.community.entity.DiscussPosts;
+import com.nowcoder.community.entity.DiscussPost;
 import com.nowcoder.community.entity.Event;
 import com.nowcoder.community.event.EventProducer;
 import com.nowcoder.community.service.CommentService;
@@ -47,13 +47,23 @@ public class CommentController implements CommunityConstant {
 				.setEntityId(comment.getEntityId())
 				.setData("postId", discussPostId);
 		if (comment.getEntityType() == ENTITY_TYPE_POST) {
-			DiscussPosts target = discussPostsService.finfDiscussPostById(comment.getEntityId());
+			DiscussPost target = discussPostsService.finfDiscussPostById(comment.getEntityId());
 			event.setEntityUserId(target.getUserId());
 		} else if (comment.getEntityType() == ENTITY_TYPE_COMMENT) {
 			Comment target = commentService.findCommentById(comment.getEntityId());
 			event.setEntityUserId(target.getUserId());
 		}
 		eventProducer.fireEvent(event);
+
+		if (comment.getEntityType() == ENTITY_TYPE_POST) {
+			// 触发发帖事件
+			event = new Event()
+					.setTopic(TOPIC_PUBLISH)
+					.setUserId(comment.getUserId())
+					.setEntityType(ENTITY_TYPE_POST)
+					.setEntityId(discussPostId);
+			eventProducer.fireEvent(event);
+		}
 
 		return "redirect:/discuss/detail/" + discussPostId;
 	}

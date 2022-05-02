@@ -3,7 +3,7 @@ package com.nowcoder.community.service;
 import com.nowcoder.community.dao.A_Dao;
 import com.nowcoder.community.dao.DiscussPostMapper;
 import com.nowcoder.community.dao.UserMapper;
-import com.nowcoder.community.entity.DiscussPosts;
+import com.nowcoder.community.entity.DiscussPost;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.util.CommunityUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,7 +69,7 @@ public class A_Service {
 		userMapper.insertUser(user);
 
 		// 新增帖子
-		DiscussPosts post = new DiscussPosts();
+		DiscussPost post = new DiscussPost();
 		post.setUserId(user.getId());
 		post.setTitle("Hello");
 		post.setContent("新人報道");
@@ -99,7 +99,7 @@ public class A_Service {
 				userMapper.insertUser(user);
 
 				// 新增帖子
-				DiscussPosts post = new DiscussPosts();
+				DiscussPost post = new DiscussPost();
 				post.setUserId(user.getId());
 				post.setTitle("你好");
 				post.setContent("新人xunhua ！");

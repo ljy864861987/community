@@ -15,7 +15,7 @@
         , title, content, type, status, create_time, comment_count, score
     </sql>
 
-    <select id="selectDiscussPosts" resultType="DiscussPosts">
+    <select id="selectDiscussPosts" resultType="DiscussPost">
         select
         <include refid="selectFields"></include>
         from discuss_post
@@ -36,12 +36,12 @@
         </if>
     </select>
 
-    <insert id="insertDiscussPost" parameterType="DiscussPosts">
+    <insert id="insertDiscussPost" parameterType="DiscussPost" keyProperty="id">
         insert into discuss_post(<include refid="insertFields"></include>)
         values(#{userId}, #{title}, #{content}, #{type},#{status} ,#{createTime} ,#{commentCount} , #{score})
     </insert>
 
-    <select id="selectDiscussPostById" resultType="DiscussPosts">
+    <select id="selectDiscussPostById" resultType="DiscussPost">
         select
         <include refid="selectFields"></include>
         from discuss_post

@@ -2,7 +2,7 @@ package com.nowcoder.community.controller;
 
 import com.nowcoder.community.annotation.LoginRequired;
 import com.nowcoder.community.entity.Comment;
-import com.nowcoder.community.entity.DiscussPosts;
+import com.nowcoder.community.entity.DiscussPost;
 import com.nowcoder.community.entity.Page;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.service.*;
@@ -177,10 +177,10 @@ public class UserController implements CommunityConstant {
 		page.setPath("/user/myPost/" + userId);
 		page.setRows(postCount);
 		// 获取帖子
-		List<DiscussPosts> list = discussPostsService.findDiscussPosts(userId, page.getOffset(), page.getLimit());
+		List<DiscussPost> list = discussPostsService.findDiscussPosts(userId, page.getOffset(), page.getLimit());
 		List<Map<String, Object>> postList = new ArrayList<>();
 		if (list != null) {
-			for (DiscussPosts post : list) {
+			for (DiscussPost post : list) {
 				Map<String, Object> map = new HashMap<>();
 				map.put("post", post);
 				// 帖子点赞数量
@@ -214,7 +214,7 @@ public class UserController implements CommunityConstant {
 				Map<String, Object> map = new HashMap<>();
 				map.put("comment", comment);
 				// 帖子
-				DiscussPosts discussPost = discussPostsService.finfDiscussPostById(comment.getEntityId());
+				DiscussPost discussPost = discussPostsService.finfDiscussPostById(comment.getEntityId());
 				map.put("discussPost", discussPost);
 				commentList.add(map);
 			}

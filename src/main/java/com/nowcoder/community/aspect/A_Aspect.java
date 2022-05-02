@@ -13,6 +13,7 @@ public class A_Aspect {
 
 	}
 
+
 	@Before("pointcut()")
 	public void before(){
 		System.out.println("before");

@@ -1,9 +1,7 @@
 package com.nowcoder.community.controller;
 
-import com.nowcoder.community.entity.Comment;
-import com.nowcoder.community.entity.DiscussPosts;
-import com.nowcoder.community.entity.Page;
-import com.nowcoder.community.entity.User;
+import com.nowcoder.community.entity.*;
+import com.nowcoder.community.event.EventProducer;
 import com.nowcoder.community.service.*;
 import com.nowcoder.community.util.CommunityUtil;
 import com.nowcoder.community.util.HostHolder;
@@ -37,6 +35,9 @@ public class DiscussPostController implements CommunityConstant {
 	@Autowired
 	private LikeService likeService;
 
+	@Autowired
+	private EventProducer eventProducer;
+
 	@RequestMapping(path = "/add", method = RequestMethod.POST)
 	@ResponseBody
 	public String addDiscussPost(String title, String content) {
@@ -48,15 +49,24 @@ public class DiscussPostController implements CommunityConstant {
 		}
 		User user = hostHolder.getUser();
 		if (user == null) {
-			return CommunityUtil.getJSONString(403, "还没登录，蠢蛋。");
+			return CommunityUtil.getJSONString(401, "还没登录，蠢蛋。");
 		}
-		DiscussPosts discussPosts = new DiscussPosts();
-		discussPosts.setTitle(title);
-		discussPosts.setContent(content);
-		discussPosts.setCreateTime(new Date());
-		discussPosts.setUserId(user.getId());
+		DiscussPost discussPost = new DiscussPost();
+		discussPost.setTitle(title);
+		discussPost.setContent(content);
+		discussPost.setCreateTime(new Date());
+		discussPost.setUserId(user.getId());
 
-		discussPostsService.addDiscussPost(discussPosts);
+		discussPostsService.addDiscussPost(discussPost);
+
+		// 触发发帖事件
+		Event event = new Event()
+				.setTopic(TOPIC_PUBLISH)
+				.setUserId(user.getId())
+				.setEntityType(ENTITY_TYPE_POST)
+				.setEntityId(discussPost.getId());
+		eventProducer.fireEvent(event);
+
 		//报错的情况将来统一处理.
 		return CommunityUtil.getJSONString(0, "发布成功！");
 	}
@@ -64,7 +74,7 @@ public class DiscussPostController implements CommunityConstant {
 	@RequestMapping(path = "/detail/{discussPostId}", method = RequestMethod.GET)
 	public String getDiscussPost(@PathVariable("discussPostId") int discussPostId, Model model, Page page) {
 		// 帖子
-		DiscussPosts post = discussPostsService.finfDiscussPostById(discussPostId);
+		DiscussPost post = discussPostsService.finfDiscussPostById(discussPostId);
 		model.addAttribute("post", post);
 		// 作者
 		User user = userService.findUserById(post.getUserId());
