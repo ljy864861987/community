@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <contextName>my_web</contextName>
-    <property name="LOG_PATH" value="C:\Users\LJY\Desktop\NowcoderProject\log"/>
+    <property name="LOG_PATH" value="C:/Users/LJY/Desktop/NowcoderProject/log"/>
     <property name="APPDIR" value="community"/>
 
     <!-- error file -->

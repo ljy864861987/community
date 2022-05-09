@@ -33,6 +33,18 @@ function follow() {
                 }
             }
         );
-       // $(btn).text("关注TA").removeClass("btn-secondary").addClass("btn-info");
+        // $(btn).text("关注TA").removeClass("btn-secondary").addClass("btn-info");
     }
+}
+
+window.onload = function updateTime() {
+    $.post(
+        CONTEXT_PATH + "/user/time",
+        {},
+        function (data) {
+            data = $.parseJSON(data);
+            $("#timeShow").text(data.timer);
+        }
+    );
+    setTimeout(updateTime, 1000);
 }

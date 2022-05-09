@@ -13,8 +13,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
 
-@Controller
-@RequestMapping("/a")
+//@Controller
+//@RequestMapping("/a")
 public class A_Controller {
 
 	@Autowired

@@ -1,4 +1,8 @@
-var CONTEXT_PATH = "/community";
+var CONTEXT_PATH = "";
+var accessKey = '7141c854644b46a091e120e69a1847ca';
+var secretKey = '0de65b61c3564b369f16bcb904570d94';
+var headerBucket = 'ljy-demo-header';
+var shareBucket = 'ljy-demo-share';
 
 window.alert = function (message) {
     if (!$(".alert-box").length) {

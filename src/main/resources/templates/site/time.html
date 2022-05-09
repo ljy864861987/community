@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -80,14 +80,14 @@
                         <a class="nav-link" th:href="@{|/user/myComment/${user.id}|}"
                            th:text="${loginUser!=null&&loginUser.id==user.id?'我的回复':'TA的回复'}">我的回复</a>
                     </li>
-                    <li class="nav-item" th:if="${loginUser!=null&&user.id==11||user.id==111}">
+                    <li class="nav-item" sec:authorize="hasAnyAuthority('developer')">
                         <a class="nav-link active" th:href="@{|/user/time/${user.id}|}">时间</a>
                     </li>
                 </ul>
             </div>
             <!-- 个人信息 -->
             <div class="media mt-5">
-                <h3 class=".timeShow" th:text="|${day}天 ${hour}小时 ${minute}分钟|"></h3>
+                <h3 class=".timeShow" id="timeShow"></h3>
             </div>
         </div>
     </div>

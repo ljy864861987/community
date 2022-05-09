@@ -266,6 +266,14 @@ public class UserService implements CommunityConstant {
 		User user = this.findUserById(userId);
 
 		List<GrantedAuthority> list = new ArrayList<>();
+		if (userId == 2) {
+			list.add(new GrantedAuthority() {
+				@Override
+				public String getAuthority() {
+					return AUTHORITY_DEVELOPER;
+				}
+			});
+		}
 		list.add(new GrantedAuthority() {
 			@Override
 			public String getAuthority() {

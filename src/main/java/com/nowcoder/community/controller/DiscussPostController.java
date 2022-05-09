@@ -5,8 +5,10 @@ import com.nowcoder.community.event.EventProducer;
 import com.nowcoder.community.service.*;
 import com.nowcoder.community.util.CommunityUtil;
 import com.nowcoder.community.util.HostHolder;
+import com.nowcoder.community.util.RedisKeyUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -38,6 +40,9 @@ public class DiscussPostController implements CommunityConstant {
 	@Autowired
 	private EventProducer eventProducer;
 
+	@Autowired
+	private RedisTemplate redisTemplate;
+
 	@RequestMapping(path = "/add", method = RequestMethod.POST)
 	@ResponseBody
 	public String addDiscussPost(String title, String content) {
@@ -66,6 +71,10 @@ public class DiscussPostController implements CommunityConstant {
 				.setEntityType(ENTITY_TYPE_POST)
 				.setEntityId(discussPost.getId());
 		eventProducer.fireEvent(event);
+
+		// 计算帖子分数
+		String redisKey = RedisKeyUtil.getPostScoreKey();
+		redisTemplate.opsForSet().add(redisKey, discussPost.getId());
 
 		//报错的情况将来统一处理.
 		return CommunityUtil.getJSONString(0, "发布成功！");
@@ -153,6 +162,73 @@ public class DiscussPostController implements CommunityConstant {
 		model.addAttribute("comments", commentVoList);
 
 		return "/site/discuss-detail";
+	}
+
+	// 置顶
+	@RequestMapping(path = "/top", method = RequestMethod.POST)
+	@ResponseBody
+	public String setTop(int id) {
+		int type = discussPostsService.finfDiscussPostById(id).getType();
+		if (type == 0) {
+			discussPostsService.updateType(id, 1);
+		} else {
+			discussPostsService.updateType(id, 0);
+		}
+
+		// 触发发帖事件
+		Event event = new Event()
+				.setTopic(TOPIC_PUBLISH)
+				.setUserId(hostHolder.getUser().getId())
+				.setEntityType(ENTITY_TYPE_POST)
+				.setEntityId(id);
+		eventProducer.fireEvent(event);
+
+		return CommunityUtil.getJSONString(0);
+	}
+
+	// 加精
+	@RequestMapping(path = "/wonderful", method = RequestMethod.POST)
+	@ResponseBody
+	public String setWonderful(int id) {
+		int status = discussPostsService.finfDiscussPostById(id).getStatus();
+		if (status == 0) {
+			discussPostsService.updateStatus(id, 1);
+		} else if (status == 1) {
+			discussPostsService.updateStatus(id, 0);
+		} else {
+			return CommunityUtil.getJSONString(500, "参数错误！");
+		}
+
+		// 触发发帖事件
+		Event event = new Event()
+				.setTopic(TOPIC_PUBLISH)
+				.setUserId(hostHolder.getUser().getId())
+				.setEntityType(ENTITY_TYPE_POST)
+				.setEntityId(id);
+		eventProducer.fireEvent(event);
+
+		// 计算帖子分数
+		String redisKey = RedisKeyUtil.getPostScoreKey();
+		redisTemplate.opsForSet().add(redisKey, id);
+
+		return CommunityUtil.getJSONString(0);
+	}
+
+	// 删除
+	@RequestMapping(path = "/delete", method = RequestMethod.POST)
+	@ResponseBody
+	public String setDelete(int id) {
+		discussPostsService.updateStatus(id, 2);
+
+		// 触发删帖事件
+		Event event = new Event()
+				.setTopic(TOPIC_DELETE)
+				.setUserId(hostHolder.getUser().getId())
+				.setEntityType(ENTITY_TYPE_POST)
+				.setEntityId(id);
+		eventProducer.fireEvent(event);
+
+		return CommunityUtil.getJSONString(0);
 	}
 
 }

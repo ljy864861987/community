@@ -18,6 +18,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
@@ -61,12 +62,31 @@ public class UserController implements CommunityConstant {
 	@Autowired
 	private CommentService commentService;
 
+	@Value("${baidu.bucket.header.url}")
+	private String headerBucket;
+
+
 	@LoginRequired
 	@RequestMapping(path = "/setting", method = RequestMethod.GET)
-	public String getSettingPage() {
+	public String getSettingPage(Model model) {
+		String fileName = CommunityUtil.generateUUID();
+		model.addAttribute("fileName", fileName);
 		return "/site/setting";
 	}
 
+	@RequestMapping(path = "/header/url", method = RequestMethod.POST)
+	@ResponseBody
+	public String setHeaderUrl(String fileName) {
+		if (StringUtils.isBlank(fileName)) {
+			return CommunityUtil.getJSONString(1, "文件名不能为空！");
+		}
+
+		String url = headerBucket + "/" + fileName;
+		userService.updateHeader(hostHolder.getUser().getId(), url);
+		return CommunityUtil.getJSONString(0);
+	}
+
+	// 废弃
 	@LoginRequired
 	@RequestMapping(path = "/upload", method = RequestMethod.POST)
 	public String uploadHeader(MultipartFile headerImage, Model model) {
@@ -102,6 +122,7 @@ public class UserController implements CommunityConstant {
 		return "redirect:/index";
 	}
 
+	// 废弃
 	@RequestMapping(path = "/header/{fileName}", method = RequestMethod.GET)
 	public void getHeader(@PathVariable("fileName") String fileName, HttpServletResponse response) {
 		//服務器存放路徑
@@ -177,7 +198,7 @@ public class UserController implements CommunityConstant {
 		page.setPath("/user/myPost/" + userId);
 		page.setRows(postCount);
 		// 获取帖子
-		List<DiscussPost> list = discussPostsService.findDiscussPosts(userId, page.getOffset(), page.getLimit());
+		List<DiscussPost> list = discussPostsService.findDiscussPosts(userId, page.getOffset(), page.getLimit(), 0);
 		List<Map<String, Object>> postList = new ArrayList<>();
 		if (list != null) {
 			for (DiscussPost post : list) {
@@ -228,15 +249,22 @@ public class UserController implements CommunityConstant {
 	public String getTime(@PathVariable("userId") int userId, Model model) {
 		User user = userService.findUserById(userId);
 		model.addAttribute("user", user);
+		return "/site/time";
+	}
+
+	@RequestMapping(path = "/time", method = RequestMethod.POST)
+	@ResponseBody
+	public String setTime() {
 		long time = System.currentTimeMillis() - BEGIN_TIME;
 		time = time / 1000;
 		int day = (int) (time / 3600 / 24);
 		int hour = (int) (time / 3600 % 24);
 		int minute = (int) (time % 3600 / 60);
-		model.addAttribute("day", day);
-		model.addAttribute("hour", hour);
-		model.addAttribute("minute", minute);
-		return "/site/time";
+		int second = (int) (time % 60);
+		String timer = day + "天" + hour + "小时" + minute + "分钟" + second + "秒";
+		Map<String, Object> map = new HashMap<>();
+		map.put("timer", timer);
+		return CommunityUtil.getJSONString(0, null, map);
 	}
 
 }
